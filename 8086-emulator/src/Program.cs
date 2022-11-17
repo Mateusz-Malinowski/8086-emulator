@@ -1,1 +1,1 @@
-﻿Console.WriteLine("Hello, World!");
+﻿Emulator.Console.Init();
