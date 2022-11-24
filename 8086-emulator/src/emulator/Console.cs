@@ -1,24 +1,10 @@
-﻿namespace Emulator {
-    enum MessageType
-    {
-        Normal,
-        Warning,
-        Error
-    }
-        
+﻿namespace Emulator
+{
     internal static class Console
     {
         public static uint leftMargin = 15;
 
-        private static Dictionary<MessageType, System.ConsoleColor> messageTypeToColor = 
-            new Dictionary<MessageType, System.ConsoleColor>
-            {
-                { MessageType.Normal, ConsoleColor.White },
-                { MessageType.Warning, ConsoleColor.Yellow },
-                { MessageType.Error, ConsoleColor.Red },
-            };
-
-        private static Dictionary<string, Action<Stack<string>>> commands = 
+        private static readonly Dictionary<string, Action<Stack<string>>> commands = 
             new Dictionary<string, Action<Stack<string>>>
             {
                 { "help", Help },
@@ -36,8 +22,15 @@
 
         public static void Write(string text = "", MessageType messageType = MessageType.Normal)
         {
-            System.Console.ForegroundColor = messageTypeToColor.GetValueOrDefault(messageType);
-            System.Console.Write($"$ {text}", messageType);
+            Message? message = Config.Messages.GetValueOrDefault(messageType);
+
+            if (message == null) throw new Exception($"Unmapped message type {messageType}");
+
+            System.Console.ForegroundColor = Config.MessagePrefixColor;
+            System.Console.Write($"{Config.MessagePrefix} ");
+
+            System.Console.ForegroundColor = message.color;
+            System.Console.Write($"{message.prefix}{text}");
             System.Console.ResetColor();
         }
 
@@ -52,7 +45,11 @@
 
             do
             {
-                Write(">> ");
+                Write("");
+                System.Console.ForegroundColor = Config.InputPrefixColor;
+                System.Console.Write($"{Config.InputPrefix} ");
+                System.Console.ResetColor(); // nie resetuje?
+
                 input = System.Console.ReadLine();
             }
             while (input == "" || input == null);
@@ -69,8 +66,7 @@
 
             if (!commands.TryGetValue(command, out method)) // invalid command
             {
-                WriteLine($"Command \"{command}\" not found", MessageType.Error);
-                WriteLine("Type \"help\" to see available commands.", MessageType.Normal);
+                WriteLine($"Command \"{command}\" not found. Type \"help\" to see available commands.", MessageType.Error);
                 return;
             }
 
