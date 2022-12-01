@@ -4,19 +4,20 @@
     {
         public static uint leftMargin = 15;
 
-        private static readonly Dictionary<string, Action<Stack<string>>> commands = 
-            new Dictionary<string, Action<Stack<string>>>
+        public static readonly Dictionary<string, Command> commands = 
+            new Dictionary<string, Command>
             {
-                { "help", Help },
-                { "print", Print } 
+                { "help", new HelpCommand() },
+                { "print", new PrintCommand() },
+                { "exit", new ExitCommand() },
             };
 
         public static void Init()
         {
-            WriteLine("Welcome to Intel 8086 emulator!");
-            WriteLine();
-            WriteLine("Type \"help\" to see available commands.");
-            WriteLine();
+            Write("Welcome to Intel 8086 emulator!\n");
+            Write("\n");
+            Write("Type \"help\" to see available commands.\n");
+            Write("\n");
             ReadCommands();
         }
 
@@ -28,15 +29,11 @@
 
             System.Console.ForegroundColor = Config.MessagePrefixColor;
             System.Console.Write($"{Config.MessagePrefix} ");
+            System.Console.ResetColor();
 
             System.Console.ForegroundColor = message.color;
             System.Console.Write($"{message.prefix}{text}");
             System.Console.ResetColor();
-        }
-
-        public static void WriteLine(string text = "", MessageType messageType = MessageType.Normal)
-        {
-            Write($"{text}\n", messageType);
         }
 
         private static void ReadCommands()
@@ -48,9 +45,11 @@
                 Write("");
                 System.Console.ForegroundColor = Config.InputPrefixColor;
                 System.Console.Write($"{Config.InputPrefix} ");
-                System.Console.ResetColor(); // nie resetuje?
+                System.Console.ResetColor();
 
+                System.Console.ForegroundColor = Config.InputColor;
                 input = System.Console.ReadLine();
+                System.Console.ResetColor();
             }
             while (input == "" || input == null);
 
@@ -61,26 +60,16 @@
 
         public static void RunCommand(Stack<string> argStack)
         {
-            string command = argStack.Pop();
-            Action<Stack<string>>? method;
+            string text = argStack.Pop();
+            Command? command;
 
-            if (!commands.TryGetValue(command, out method)) // invalid command
+            if (!commands.TryGetValue(text, out command)) // invalid command
             {
-                WriteLine($"Command \"{command}\" not found. Type \"help\" to see available commands.", MessageType.Error);
+                Write($"Command \"{text}\" not found. Type \"help\" to see available commands.\n", MessageType.Error);
                 return;
             }
 
-            method(argStack);
-        }
-
-        private static void Help(Stack<string> argStack)
-        {
-
-        }
-
-        private static void Print(Stack<string> argStack)
-        {
-            
+            command.Execute(argStack);
         }
     }
 }
