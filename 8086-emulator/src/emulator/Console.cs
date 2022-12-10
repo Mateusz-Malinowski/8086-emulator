@@ -9,7 +9,10 @@
             {
                 { "help", new HelpCommand() },
                 { "print", new PrintCommand() },
+                { "clear", new ClearCommand() },
                 { "exit", new ExitCommand() },
+                { "mov", new MovCommand() },
+                { "add", new AddCommand() },
             };
 
         public static void Init()
@@ -62,7 +65,7 @@
         {
             string text = argStack.Pop();
             Command? command;
-
+            
             if (!commands.TryGetValue(text, out command)) // invalid command
             {
                 Write($"Command \"{text}\" not found. Type \"help\" to see available commands.\n", MessageType.Error);
